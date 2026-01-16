@@ -1,0 +1,87 @@
+services:
+  raw-stage:
+    build:
+      context: .
+      dockerfile: Dockerfiles/raw.Dockerfile
+    container_name: raw-container
+    networks:
+      - spark-net
+    environment:
+      SOURCE: /app/raw/
+      DESTINATION: /app/landing/
+    volumes:
+      - /home/alex/medallion_pipeline/data/raw:/app/raw
+      - /home/alex/medallion_pipeline/data/landing:/app/landing
+      - /home/alex/medallion_pipeline/data/logs/raw:/app/logs
+
+  landing-stage:
+    build:
+      context: .
+      dockerfile: Dockerfiles/landing.Dockerfile
+    container_name: landing-container
+    networks:
+      - spark-net
+    depends_on:
+      - raw-stage
+    environment:
+      SOURCE: /app/landing
+      DESTINATION: /app/bronze
+    volumes:
+      - /home/alex/medallion_pipeline/data/landing:/app/landing
+      - /home/alex/medallion_pipeline/data/bronze:/app/bronze
+      - /home/alex/medallion_pipeline/data/logs/landing:/app/logs
+
+  bronze-stage:
+    build:
+      context: .
+      dockerfile: Dockerfiles/bronze.Dockerfile
+    container_name: bronze-container
+    networks:
+      - spark-net
+    depends_on:
+      - landing-stage
+    environment:
+      SOURCE: /app/bronze
+      DESTINATION : /app/silver
+    volumes:
+      - /home/alex/medallion_pipeline/data/bronze:/app/bronze
+      - /home/alex/medallion_pipeline/data/silver:/app/silver
+      - /home/alex/medallion_pipeline/data/logs/bronze:/app/logs
+
+  silver-stage:
+    build:
+      context: .
+      dockerfile: Dockerfiles/silver.Dockerfile
+    container_name: silver-container
+    networks:
+      - spark-net
+    depends_on:
+      - bronze-stage
+    environment:
+      SOURCE: /app/silver
+      DESTINATION: /app/gold
+    volumes:
+      - /home/alex/medallion_pipeline/data/silver:/app/silver
+      - /home/alex/medallion_pipeline/data/gold:/app/gold
+      - /home/alex/medallion_pipeline/data/logs/silver:/app/logs
+      
+  gold-stage:
+    build:
+      context: .
+      dockerfile: Dockerfiles/gold.Dockerfile
+    container_name: gold-container
+    networks:
+      - spark-net
+    depends_on:
+      - silver-stage
+    environment:
+      SOURCE: /app/gold
+      DESTINATION: /app/serving
+    volumes:
+      - /home/alex/medallion_pipeline/data/gold:/app/gold
+      - /home/alex/medallion_pipeline/data/serving:/app/serving
+      - /home/alex/medallion_pipeline/data/logs/gold:/app/logs
+
+networks:
+  spark-net:
+    driver: bridge
