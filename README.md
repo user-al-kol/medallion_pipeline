@@ -16,6 +16,30 @@ The project is organized into:
 - Shared volumes for data exchange
 - Centralized logging
 
+## Pipeline Architecture Diagram
+
+```mermaid
+flowchart LR
+    A[Raw Layer] --> B[Landing Layer]
+    B --> C[Bronze Layer]
+    C --> D[Silver Layer]
+    D --> E[Gold Layer]
+
+    subgraph Data Sources
+        F[CSV Files in data/myfiles/]
+    end
+    F --> A
+
+    subgraph Output
+        G[SQLite Database - Fact & Dimension Tables]
+    end
+    E --> G
+
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style B fill:#bbf,stroke:#333,stroke-width:2px
+    style C fill:#bfb,stroke:#333,stroke-width:2px
+    style D fill:#ffb,stroke:#333,stroke-width:2px
+    style E fill:#fbb,stroke:#333,stroke-width:2px
 
 ## Overview
 
@@ -135,31 +159,3 @@ The final output is a **SQLite database** containing fact and dimensional tables
 - The pipeline can be executed on any environment where **Docker** is supported. In this project, a **Linux remote server** is used.
 - Start the pipeline using Docker Compose.
 - Once all containers are up and running, copy the input CSV files from the `data/myfiles/` directory into the `data/raw/` directory to trigger the pipeline.
-
-## Pipeline Architecture Diagram
-
-```mermaid
-flowchart LR
-    A[Raw Layer] --> B[Landing Layer]
-    B --> C[Bronze Layer]
-    C --> D[Silver Layer]
-    D --> E[Gold Layer]
-
-    subgraph Data Sources
-        F[CSV Files in data/myfiles/]
-    end
-    F --> A
-
-    subgraph Output
-        G[SQLite Database - Fact & Dimension Tables]
-    end
-    E --> G
-
-    style A fill:#f9f,stroke:#333,stroke-width:2px
-    style B fill:#bbf,stroke:#333,stroke-width:2px
-    style C fill:#bfb,stroke:#333,stroke-width:2px
-    style D fill:#ffb,stroke:#333,stroke-width:2px
-    style E fill:#fbb,stroke:#333,stroke-width:2px
-
-
-
